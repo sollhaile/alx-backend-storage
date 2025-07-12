@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This module defines a Cache class that stores and retrieves data using Redis."""
+"""This module defines a Cache class to store and retrieve data using Redis."""
 
 import redis
 from uuid import uuid4
@@ -7,22 +7,22 @@ from typing import Union, Callable, Optional
 
 
 class Cache:
-    """Cache class to interact with Redis and handle data storage and retrieval."""
+    """Cache class for storing and retrieving data using Redis."""
 
     def __init__(self):
-        """Initialize Redis connection and flush database."""
+        """Initialize Redis client and flush the database."""
         self._redis = redis.Redis()
         self._redis.flushdb()
 
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
-        Store the given data in Redis using a random key.
+        Store the given data in Redis with a randomly generated key.
 
         Args:
-            data: The data to be stored.
+            data: The data to store (str, bytes, int, or float).
 
         Returns:
-            The key under which the data is stored.
+            The key under which the data was stored.
         """
         key = str(uuid4())
         self._redis.set(key, data)
@@ -30,26 +30,18 @@ class Cache:
 
     def get(self, key: str, fn: Optional[Callable] = None) -> Union[str, bytes, int, float, None]:
         """
-        Retrieve data from Redis by key, optionally applying a conversion function.
+        Retrieve data from Redis using the given key. Optionally apply a transformation.
 
         Args:
-            key: The key to look up in Redis.
-            fn: Optional callable to convert the data.
+            key: The Redis key.
+            fn: Optional callable to transform the data before returning.
 
         Returns:
-            The retrieved data, optionally converted, or None if not found.
+            The data, transformed if fn is provided. None if the key doesn’t exist.
         """
         data = self._redis.get(key)
         if data is None:
             return None
-        if fn:
+        if fn is not None:
             return fn(data)
         return data
-
-    def get_str(self, key: str) -> Optional[str]:
-        """Retrieve data as a UTF-8 string."""
-        return self.get(key, lambda d: d.decode('utf-8'))
-
-    def get_int(self, key: str) -> Optional[int]:
-        """Retrieve data as an integer."""
-        return self.get(key, lambda d: int(d))
